@@ -67,8 +67,9 @@ class RPNProposal(gluon.HybridBlock):
 
             # remove bounding boxes that don't meet the min_size constraint
             # by setting them to (-1, -1, -1, -1)
-            width = roi.slice_axis(axis=-1, begin=2, end=3)
-            height = roi.slice_axis(axis=-1, begin=3, end=None)
+            xmin, ymin, xmax, ymax = roi.split(axis=-1, num_outputs=4)
+            width = xmax - xmin + 1
+            height = ymax - ymin + 1
             invalid = (width < self._min_size) + (height < self._min_size)
             score = F.where(invalid, F.zeros_like(invalid), score)
             invalid = F.repeat(invalid, axis=-1, repeats=4)
