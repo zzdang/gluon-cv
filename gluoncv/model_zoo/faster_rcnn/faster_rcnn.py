@@ -14,7 +14,8 @@ __all__ = ['FasterRCNN', 'get_faster_rcnn',
            'faster_rcnn_resnet50_v1b_coco',
            'faster_rcnn_resnet50_v2a_voc',
            'faster_rcnn_resnet50_v2a_coco',
-           'faster_rcnn_resnet50_v2_voc']
+           'faster_rcnn_resnet50_v2_voc',
+           'faster_rcnn_vgg16_voc']
 
 
 class FasterRCNN(RCNN):
@@ -147,7 +148,7 @@ class FasterRCNN(RCNN):
         # RCNN prediction
         top_feat = self.top_features(pooled_feat)
         # top_feat = F.Pooling(top_feat, global_pool=True, pool_type='avg', kernel=self._roi_size)
-        top_feat = self.global_avg_pool(top_feat)
+        #top_feat = self.global_avg_pool(top_feat)
         cls_pred = self.class_predictor(top_feat)
         box_pred = self.box_predictor(top_feat).reshape(
             (-1, self.num_class, 4)).transpose((1, 0, 2))
@@ -433,5 +434,23 @@ def faster_rcnn_resnet50_v2_voc(pretrained=False, pretrained_base=True, **kwargs
     return get_faster_rcnn('resnet50_v2', features, top_features, scales=(2, 4, 8, 16, 32),
                            ratios=(0.5, 1, 2), classes=classes, dataset='voc',
                            roi_mode='align', roi_size=(14, 14), stride=16,
+                           rpn_channel=1024, train_patterns=train_patterns,
+                           pretrained=pretrained, **kwargs)
+
+def faster_rcnn_vgg16_voc(pretrained=False, pretrained_base=True, **kwargs):
+
+    from ...data import VOCDetection
+    classes = VOCDetection.CLASSES
+    pretrained_base = False if pretrained else pretrained_base
+    base_network = mx.gluon.model_zoo.vision.get_model('vgg16', pretrained=pretrained_base)
+    features = base_network.features[:30]
+    top_features =base_network.features[31:]
+    print("-------------")
+    print(top_features)
+ 
+    train_patterns = '|'.join(['.*dense', '.*rpn', '.*stage(2|3|4)_conv'])
+    return get_faster_rcnn('vgg16', features, top_features, scales=( 16, 32,64),
+                           ratios=(0.5, 1, 2), classes=classes, dataset='voc',
+                           roi_mode='align', roi_size=(7, 7), stride=16,
                            rpn_channel=1024, train_patterns=train_patterns,
                            pretrained=pretrained, **kwargs)

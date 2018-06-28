@@ -93,6 +93,7 @@ def get_model(name, **kwargs):
         'se_resnet50_v2' : se_resnet50_v2,
         'se_resnet101_v2' : se_resnet101_v2,
         'se_resnet152_v2' : se_resnet152_v2,
+        'faster_rcnn_vgg16_voc':faster_rcnn_vgg16_voc,
         }
     try:
         net = gluon.model_zoo.vision.get_model(name, **kwargs)
