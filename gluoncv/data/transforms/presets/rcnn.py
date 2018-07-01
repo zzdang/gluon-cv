@@ -175,6 +175,7 @@ class FasterRCNNDefaultValTransform(object):
     def __call__(self, src, label):
         """Apply transform to validation image/label."""
         # resize shorter side but keep in max_size
+<<<<<<< HEAD
         img = timage.resize_short_within(src, self._short, self._max_size)
         # no scaling ground-truth, return image scaling ratio instead
         # bbox = tbbox.resize(label, (w, h), (img.shape[1], img.shape[0]))
@@ -183,3 +184,14 @@ class FasterRCNNDefaultValTransform(object):
         img = mx.nd.image.to_tensor(img)
         img = mx.nd.image.normalize(img, mean=self._mean, std=self._std)
         return img, label.astype('float32'), mx.nd.array([im_scale])
+=======
+        h, w, _ = src.shape
+        img = timage.resize_short_within(src, self._short, self._max_size)
+        # no scaling ground-truth, return image scaling ratio instead
+        bbox = tbbox.resize(label, (w, h), (img.shape[1], img.shape[0]))
+        im_scale = h / float(img.shape[0])
+
+        img = mx.nd.image.to_tensor(img)
+        img = mx.nd.image.normalize(img, mean=self._mean, std=self._std)
+        return img, bbox.astype('float32'), mx.nd.array([im_scale])
+>>>>>>> c29ba472a93c3d197cd1c5eabd6f3113d3330d18

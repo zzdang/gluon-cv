@@ -28,6 +28,13 @@ class RCNN(gluon.HybridBlock):
     nms_topk : int, default is 400
         Apply NMS to top k detection results, use -1 to disable so that every Detection
          result is used in NMS.
+<<<<<<< HEAD
+=======
+    post_nms : int, default is 100
+        Only return top `post_nms` detection results, the rest is discarded. The number is
+        based on COCO dataset which has maximum 100 objects per image. You can adjust this
+        number if expecting more objects. You can use -1 to return all detections.
+>>>>>>> c29ba472a93c3d197cd1c5eabd6f3113d3330d18
     train_patterns : str
         Matching pattern for trainable parameters.
 
@@ -47,7 +54,11 @@ class RCNN(gluon.HybridBlock):
 
     """
     def __init__(self, features, top_features, classes, roi_mode, roi_size,
+<<<<<<< HEAD
                  nms_thresh=0.3, nms_topk=400, train_patterns=None, **kwargs):
+=======
+                 nms_thresh=0.3, nms_topk=400, post_nms=100, train_patterns=None, **kwargs):
+>>>>>>> c29ba472a93c3d197cd1c5eabd6f3113d3330d18
         super(RCNN, self).__init__(**kwargs)
         self.classes = classes
         self.num_class = len(classes)
@@ -58,6 +69,10 @@ class RCNN(gluon.HybridBlock):
         self._roi_size = roi_size
         self.nms_thresh = nms_thresh
         self.nms_topk = nms_topk
+<<<<<<< HEAD
+=======
+        self.post_nms = post_nms
+>>>>>>> c29ba472a93c3d197cd1c5eabd6f3113d3330d18
         self.train_patterns = train_patterns
 
         with self.name_scope():
@@ -95,7 +110,11 @@ class RCNN(gluon.HybridBlock):
             return self.collect_params(self.train_patterns)
         return self.collect_params(select)
 
+<<<<<<< HEAD
     def set_nms(self, nms_thresh=0.3, nms_topk=400):
+=======
+    def set_nms(self, nms_thresh=0.3, nms_topk=400, post_nms=100):
+>>>>>>> c29ba472a93c3d197cd1c5eabd6f3113d3330d18
         """Set NMS parameters to the network.
 
         .. Note::
@@ -109,6 +128,13 @@ class RCNN(gluon.HybridBlock):
         nms_topk : int, default is 400
             Apply NMS to top k detection results, use -1 to disable so that every Detection
              result is used in NMS.
+<<<<<<< HEAD
+=======
+        post_nms : int, default is 100
+            Only return top `post_nms` detection results, the rest is discarded. The number is
+            based on COCO dataset which has maximum 100 objects per image. You can adjust this
+            number if expecting more objects. You can use -1 to return all detections.
+>>>>>>> c29ba472a93c3d197cd1c5eabd6f3113d3330d18
 
         Returns
         -------
@@ -117,6 +143,10 @@ class RCNN(gluon.HybridBlock):
         """
         self.nms_thresh = nms_thresh
         self.nms_topk = nms_topk
+<<<<<<< HEAD
+=======
+        self.post_nms = post_nms
+>>>>>>> c29ba472a93c3d197cd1c5eabd6f3113d3330d18
 
     # pylint: disable=arguments-differ
     def hybrid_forward(self, F, x, width, height):

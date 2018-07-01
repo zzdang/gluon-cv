@@ -10,12 +10,17 @@ from ..rcnn import RCNN
 from ..rpn import RPN
 
 __all__ = ['FasterRCNN', 'get_faster_rcnn',
+<<<<<<< HEAD
            'faster_rcnn_resnet50_v1b_voc',
            'faster_rcnn_resnet50_v1b_coco',
            'faster_rcnn_resnet50_v2a_voc',
            'faster_rcnn_resnet50_v2a_coco',
            'faster_rcnn_resnet50_v2_voc',
            'faster_rcnn_vgg16_voc']
+=======
+           'faster_rcnn_resnet50_v2a_voc',
+           'faster_rcnn_resnet50_v2a_coco',]
+>>>>>>> c29ba472a93c3d197cd1c5eabd6f3113d3330d18
 
 
 class FasterRCNN(RCNN):
@@ -56,6 +61,13 @@ class FasterRCNN(RCNN):
     nms_topk : int, default is 400
         Apply NMS to top k detection results, use -1 to disable so that every Detection
          result is used in NMS.
+<<<<<<< HEAD
+=======
+    post_nms : int, default is 100
+        Only return top `post_nms` detection results, the rest is discarded. The number is
+        based on COCO dataset which has maximum 100 objects per image. You can adjust this
+        number if expecting more objects. You can use -1 to return all detections.
+>>>>>>> c29ba472a93c3d197cd1c5eabd6f3113d3330d18
     num_sample : int, default is 128
         Number of samples for RCNN targets.
     pos_iou_thresh : float, default is 0.5
@@ -73,9 +85,14 @@ class FasterRCNN(RCNN):
 
     """
     def __init__(self, features, top_features, scales, ratios, classes, roi_mode, roi_size,
+<<<<<<< HEAD
                  stride=16, rpn_channel=1024, nms_thresh=0.3, nms_topk=400,
                  num_sample=128, pos_iou_thresh=0.5, neg_iou_thresh_high=0.5,
                  neg_iou_thresh_low=0.0, pos_ratio=0.25, **kwargs):
+=======
+                 stride=16, rpn_channel=1024, num_sample=128, pos_iou_thresh=0.5,
+                 neg_iou_thresh_high=0.5, neg_iou_thresh_low=0.0, pos_ratio=0.25, **kwargs):
+>>>>>>> c29ba472a93c3d197cd1c5eabd6f3113d3330d18
         super(FasterRCNN, self).__init__(
             features, top_features, classes, roi_mode, roi_size, **kwargs)
         self.stride = stride
@@ -148,7 +165,11 @@ class FasterRCNN(RCNN):
         # RCNN prediction
         top_feat = self.top_features(pooled_feat)
         # top_feat = F.Pooling(top_feat, global_pool=True, pool_type='avg', kernel=self._roi_size)
+<<<<<<< HEAD
         #top_feat = self.global_avg_pool(top_feat)
+=======
+        top_feat = self.global_avg_pool(top_feat)
+>>>>>>> c29ba472a93c3d197cd1c5eabd6f3113d3330d18
         cls_pred = self.class_predictor(top_feat)
         box_pred = self.box_predictor(top_feat).reshape(
             (-1, self.num_class, 4)).transpose((1, 0, 2))
@@ -176,8 +197,13 @@ class FasterRCNN(RCNN):
             result = F.contrib.box_nms(
                 result, overlap_thresh=self.nms_thresh, topk=self.nms_topk,
                 id_index=0, score_index=1, coord_start=2)
+<<<<<<< HEAD
             if self.nms_topk > 0:
                 result = result.slice_axis(axis=1, begin=0, end=100).squeeze(axis=0)
+=======
+            if self.post_nms > 0:
+                result = result.slice_axis(axis=1, begin=0, end=self.post_nms).squeeze(axis=0)
+>>>>>>> c29ba472a93c3d197cd1c5eabd6f3113d3330d18
         ids = F.slice_axis(result, axis=-1, begin=0, end=1)
         scores = F.slice_axis(result, axis=-1, begin=1, end=2)
         bboxes = F.slice_axis(result, axis=-1, begin=2, end=6)
@@ -436,6 +462,7 @@ def faster_rcnn_resnet50_v2_voc(pretrained=False, pretrained_base=True, **kwargs
                            roi_mode='align', roi_size=(14, 14), stride=16,
                            rpn_channel=1024, train_patterns=train_patterns,
                            pretrained=pretrained, **kwargs)
+<<<<<<< HEAD
 
 def faster_rcnn_vgg16_voc(pretrained=False, pretrained_base=True, **kwargs):
 
@@ -454,3 +481,5 @@ def faster_rcnn_vgg16_voc(pretrained=False, pretrained_base=True, **kwargs):
                            roi_mode='align', roi_size=(7, 7), stride=16,
                            rpn_channel=1024, train_patterns=train_patterns,
                            pretrained=pretrained, **kwargs)
+=======
+>>>>>>> c29ba472a93c3d197cd1c5eabd6f3113d3330d18
