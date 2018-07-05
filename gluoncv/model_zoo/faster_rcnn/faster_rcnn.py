@@ -355,6 +355,8 @@ def faster_rcnn_resnet50_v2a_voc(pretrained=False, pretrained_base=True, **kwarg
         features.add(getattr(base_network, layer))
     for layer in ['layer4']:
         top_features.add(getattr(base_network, layer))
+    print("----------resnet features--------")
+    print(features)
     train_patterns = '|'.join(['.*dense', '.*rpn', '.*stage(2|3|4)_conv'])
     return get_faster_rcnn('resnet50_v2a', features, top_features, scales=(2, 4, 8, 16, 32),
                            ratios=(0.5, 1, 2), classes=classes, dataset='voc',
@@ -446,7 +448,7 @@ def faster_rcnn_vgg16_voc(pretrained=False, pretrained_base=True, **kwargs):
     features = base_network.features[:30]
     top_features =base_network.features[31:]
     print("-------------")
-    print(top_features)
+    print(features)
  
     train_patterns = '|'.join(['.*dense', '.*rpn', '.*stage(2|3|4)_conv'])
     return get_faster_rcnn('vgg16', features, top_features, scales=( 16, 32,64),
