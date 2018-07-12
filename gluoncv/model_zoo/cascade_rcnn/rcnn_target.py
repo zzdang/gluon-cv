@@ -3,8 +3,8 @@ from __future__ import absolute_import
 
 from mxnet import gluon
 from mxnet import autograd
-from ...nn.coder import MultiClassEncoder, NormalizedPerClassBoxCenterEncoder
-from ...utils.nn.matcher import MaximumMatcher
+from ...nn.coder import MultiClassEncoder, NormalizedBoxCenterEncoder
+from ...utils.nn.matcher import MaximumMatcher_Cascade
 
 
 class RCNNTargetSampler(gluon.HybridBlock):
@@ -30,27 +30,30 @@ class RCNNTargetSampler(gluon.HybridBlock):
 
     """
     def __init__(self, num_sample=128, pos_iou_thresh=0.5, neg_iou_thresh_high=0.5,
-                 neg_iou_thresh_low=0.0, pos_ratio=0.25):
+                 neg_iou_thresh_low=0.0, pos_ratio=0.25,pos_iou_thresh_hg=1.0):
         super(RCNNTargetSampler, self).__init__()
         self._num_sample = num_sample
         self._pos_iou_thresh = pos_iou_thresh
         self._neg_iou_thresh_high = neg_iou_thresh_high
         self._neg_iou_thresh_low = neg_iou_thresh_low
         self._pos_ratio = pos_ratio
-        self._matcher = MaximumMatcher(pos_iou_thresh)
-
+        self._matcher = MaximumMatcher_Cascade(pos_iou_thresh,pos_iou_thresh_hg)
     #pylint: disable=arguments-differ
     def hybrid_forward(self, F, roi, gt_box):
         """
         Only support batch_size=1 now.
         """
+
+        assert gt_box is not None
         with autograd.pause():
             # cocnat rpn roi with ground truths
             all_roi = F.concat(roi.squeeze(axis=0), gt_box.squeeze(axis=0), dim=0)
+
             # calculate ious between (N, 4) anchors and (M, 4) bbox ground-truths
             # ious is (N, M)
             ious = F.contrib.box_iou(all_roi, gt_box, format='corner').transpose((1, 0, 2))
             matches = self._matcher(ious)
+
             samples = F.Custom(matches, ious, op_type='quota_sampler',
                                num_sample=self._num_sample,
                                pos_thresh=self._pos_iou_thresh,
@@ -70,6 +73,7 @@ class RCNNTargetSampler(gluon.HybridBlock):
         return new_roi, new_samples, new_matches
 
 
+
 class RCNNTargetGenerator(gluon.Block):
     """RCNN target encoder to generate matching target and regression target values.
 
@@ -86,8 +90,8 @@ class RCNNTargetGenerator(gluon.Block):
     def __init__(self, num_class, means=(0., 0., 0., 0.), stds=(.1, .1, .2, .2)):
         super(RCNNTargetGenerator, self).__init__()
         self._cls_encoder = MultiClassEncoder()
-        self._box_encoder = NormalizedPerClassBoxCenterEncoder(
-            num_class=num_class, means=means, stds=stds)
+        self._box_encoder = NormalizedBoxCenterEncoder(
+            means=means, stds=stds)
 
     #pylint: disable=arguments-differ
     def forward(self, roi, samples, matches, gt_label, gt_box):
@@ -96,10 +100,15 @@ class RCNNTargetGenerator(gluon.Block):
         """
         with autograd.pause():
             cls_target = self._cls_encoder(samples, matches, gt_label)
-            box_target, box_mask = self._box_encoder(
-                samples, matches, roi, gt_label, gt_box)
+            box_target, box_mask = self._box_encoder(samples, matches, roi, gt_box)
+            # print('roi\n', roi.astype(int), '\n--------------------')
+            # print('box_target\n', box_target.astype(int), '\n--------------------')
+            # print('box_mask\n', box_mask, '\n--------------------\n\n\n\n\n')
+
             # modify shapes to match predictions
             cls_target = cls_target[0]
-            box_target = box_target.transpose((1, 2, 0, 3))[0]
-            box_mask = box_mask.transpose((1, 2, 0, 3))[0]
+            # box_target = box_target.transpose((1, 2, 0, 3))[0]
+            # box_mask = box_mask.transpose((1, 2, 0, 3))[0]
+            box_target = box_target.transpose((1, 0, 2))
+            box_mask = box_mask.transpose((1, 0, 2))
         return cls_target, box_target, box_mask
